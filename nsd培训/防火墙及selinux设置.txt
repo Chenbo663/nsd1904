@@ -1,0 +1,69 @@
+
+防火墙策略管理
+作用:隔离,进行入站过
+
+firewalld服务基础
+Linux的防火墙体系
+• 系统服务:firewalld
+• 管理工具:firewall-cmd、firewall-config
+宽松模式:默认区域为trusted,把拒绝的客户源ip地址写入block,拒绝较少允许较多
+
+严格模式:默认区域为block,把允许的客户缘IP地址写入trusted ,拒绝较多允许较少
+
+预设安全区域
+• 根据所在的网络场所区分,预设保护规则集
+ – public:仅允许访问本机的sshd dhcp  ping 
+ – trusted:允许任何访问
+ – block:拒绝任何来访请求(明确拒绝回应)
+ – drop:丢弃任何来访的数据包(直接丢弃不给回应,节省服务器资源)
+
+防火墙的判定规则
+1.查看请求数据包,中客户端来源IP地址,查看自己所有区域规则,如果某一个区域有该源IP地址的规则,则进入该区域
+
+2.进入默认区域public
+
+
+防火墙默认区域修改
+关于防火墙的相关命令
+firewall-cmd  --get-default-zone   #查看默认区域
+firewall-cmd --set-default-zone=block   #修改默认区域为block
+firewall-cmd --zone=public  --list-all #查看区域详细规则
+firewall-cmd --zone=public  --add-service=http #添加允许的协议
+firewall-cmd --permanent --zone=public  --add-service=http 永久添加允许的协议
+firewall-cmd --reload  #重新加载防火墙所有配置
+firewall-cmd --zone=block --add-source=172.25.0.10  单独拒绝虚拟机desktop的访问
+
+
+firewall-cmd --permanent --zone=public  --add-forward-port=port=5423:proto=tcp:toport=80  转接端口
+firewall-cmd --permanent --zone=public  --add-forward-port=port=被转发端口:proto=协议设置:toport=目标端口设置
+实现本机的端口映射
+• 本地应用的端口重定向(端口1 --> 端口2)                            
+– 从客户机访问 端口1 的请求,自动映射到本机 端口2
+– 比如,访问以下两个地址可以看到相同的页面:
+  http://172.25.0.11:5423 --->  http://172.25.0.11:80
+
+常见的互联网协议:
+           http:超文本传输协议    默认端口:80 
+           FTP:文本传输协议   默认端口:21
+           https:安全的超文本传输协议   默认端口:443
+           DNS:域名解析协议      默认端口:53
+           telnet:远程管理协议     默认端口:23
+           tftp:简单的文本传输协议   默认端口:69
+           smtp:发邮件协议    默认端口:25
+           pop3:收邮件协议    默认端口:110
+           snmp:简单的网络管理协议   默认端口:161
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

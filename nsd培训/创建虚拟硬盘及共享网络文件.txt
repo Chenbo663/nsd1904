@@ -1,0 +1,184 @@
+什么是iscsi网络硬盘?
+含义:它是基于C/S构架的虚拟磁盘技术
+作用:服务器提供磁盘空间,客户机连接并可以当成本地磁盘进行使用.
+ 
+
+  backstore:后端存储
+   作用:对应到服务端提供实际存储空间的设备,需要起一个管理的名称
+ 
+  target:磁盘组
+      含义:是客户端的访问目标,作为一个框架,有多个lun组成
+
+  磁盘的名称规范(ISCSI Qualified Name):
+         iqn.yyyy-mm.倒序域名:自定义标识
+      如:iqn.2019-05.com.example:server0
+   作用:用来识别target磁盘组,也用来识别客户机的身份
+   
+  lun:逻辑单元
+   每个lun需要关联到某个后端存储设备,在客户端会视为一块虚拟硬盘
+lun的过程相当于将冰箱放到一个木质的箱子里
+
+服务端:
+1.安装targetcli软件包
+yum -y install targetcli
+  
+2.运行targetcli命令进行配置
+  a.建立backstore,后端存储(相当于冰箱)
+     targetcli
+  b.建立target磁盘组(建立木质箱子)
+  c.进行lun关联(将冰箱打包到木质箱子)
+  d.设置访问权限ACL,设置客户端声称的名字(但是必须符合iqn命令规范)
+  e.设置本机开放共享服务的ip地址及端口
+3.重启targetcli软件并设置开机自启
+客户端
+1.修改防火墙默认区域trusted
+2.所需软件包:iscsi-initiator-utils
+3.修改配置文件/etc/iscsi/initiatorname.iscsi   ##改成服务端的声称名
+InitiatorName=iqn.2019-05.com.example:abc
+4.客户端刷新声称名字的服务 systemctl restart iscsid
+5.发现共享存储    利用man帮助
+一般是man iscsiadm
+ Linux查看命令帮助的方法 :  man  iscsiadm 
+   全文查找/example   按n项下跳转匹配,看到EXAMPLES
+
+   Ctrl    - ：减小字体
+   Ctrl   Shift   + ：变大字体  
+]# iscsiadm --mode discoverydb --type sendtargets --portal 172.25.0.11 --discover
+6.使用共享存储
+]# systemctl enable iscsi
+
+
+
+###########################################################################################################################################################################################
+
+
+
+配置NFS共享
+• Network File System,网络文件系统
+– 用途:为客户机提供共享使用的文件夹
+– 协议:NFS(TCP/UDP 2049)、RPC(TCP/UDP 111)
+• 所需软件包:nfs-utils
+• 系统服务:nfs-server
+
+
+虚拟机server构建NFS共享
+服务端
+1.安装nfs-utils软件包
+2.修改配置文件
+     1)mkdir /nsd01              #创建共享目录
+     2) echo haha > /nsd01/a.txt  #建立测试文件
+     3)vim /etc/exports
+      格式:  文件夹路径    客户机地址(权限)  客户机地址(权限) .. ..
+          /nsd01   *(ro)      #将/nsd01目录共享给所有客户端,可以只读方式访问
+3.重启服务
+systemctl restart nfs-server  #重启服务
+systemctl enable nfs-server  #设置开机自启动
+
+
+客户端
+1.新建挂载点
+mkdir /mnt/test
+ls /mnt/test
+2.显示服务端共享路径
+showmount -e 172.25.0.11  #显示服务端共享路径
+3.挂载共享文件
+ mount 172.25.0.11:/nsd01  /mnt/test/  临时挂载 
+   开机自动挂载
+开机自动挂载
+   _netdev:声明网络设备,Linux先部署网络所有参数,在进行挂载该设备
+[root@desktop0 ~]# vim /etc/fstab  
+172.25.0.11:/nsd01    /mnt/test   nfs   defaults,_netdev  0 0 
+mount -a   查询是否挂载成功
+
+
+
+####################################################################################
+配置smb只读共享（Samba共享）
+用途：为客户机提供共享使用的文件夹
+协议：SMB（TCP 139）、CIFS（TCP 445）
+所需软件包：samba
+系统服务：smb
+
+管理共享账号：
+samba用户——专门用来访问文件夹的用户
+—采用独立设置的密码
+—但需要建立同名的系统用户（登录系统的密码可以不设置）
+
+使用pdbedit管理工具
+添加用户： pdbedit -a 用户名
+查询用户： pdbedit -L【用户名】
+删除用户： pdbedit -x 用户名
+
+修改配置文件：
+[root@server0 ~]# vim /etc/samba/smb.conf 
+[自定义共享名称]
+       path = 实际共享的文件夹绝对路径
+
+server0:服务端
+1、安装软件包
+[root@server0 ~]# yum -y install samba
+2、创建samba共享账号
+[root@server0 ~]# useradd harry
+[root@server0 ~]# pdbedit -a harry  //将harry添加为samba共享的用户
+new password:  //设置harry用户的密码
+retype new password:  //再次设置harry用户的密码
+3、创建共享目录/NSD1904
+[root@server0 ~]# mkdir /NSD1904
+[root@server0 ~]# echo 123 >/NSD1904/1.txt
+4、修改配置文件
+[abc]   //设置共享名
+   path = /NSD1904  //设置实际共享文件夹路径
+5、重启服务
+[root@server0 ~]# systemctl restart smb
+[root@server0 ~]# systemctl enable smb
+6、修改selinux，修改布尔值
+[root@server0 ~]# getsebool -a | grep samba
+[root@server0 ~]# setsebool -P samba_export_all_ro=on
+
+
+desktop0:客户端
+1、安装cifs-utils软件包，让本机支持cifs协议以及该文件系统
+[root@desktop0 ~]# yum -y install cifs-utils
+[root@desktop0 ~]# mount -o user=harry,pass=123 //172.25.0.11/abc /mnt/
+[root@desktop0 ~]# df -h
+[root@desktop0 ~]# umount /mnt/
+2、加入开机自启
+[root@desktop0 ~]# vim /etc/fstab 
+//172.25.0.11/abc /mnt cifs  defaults,user=harry,pass=123,_netdev 0 0
+
+注： _netdev：声明网路设备，在开启网络服务之后，再挂载本设备
+[root@desktop0 ~]# mount -a
+
+
+
+
+
+
+                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

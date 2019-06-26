@@ -1,0 +1,70 @@
+用户个性化配置文件------ ~/.bashrc或者/etc/bashrc   一般用于书写别名的配置文件    
+• 影响指定用户的 bash 解释环境
+– ~/.bashrc,每次开启 bash 终端时生效
+如果修改/etc/bashrc的配置文件则对于所有用户都生效
+别名的命令:alias 
+格式:alias  别名名称='用于别名的命令'
+
+
+
+
+
+
+搭建基本Web服务,提供一个网页内容
+  http协议:超文本传输协议,专用于传输页面内容
+
+服务端:虚拟机server
+1.安装httpd软件包
+yum -y install httpd 
+
+2.重启httpd服务
+systemctl restart httpd 
+systemctl enable  httpd
+
+3.本机测试
+firefox
+
+4.书写自己的页面
+   默认存放文件文件路径:/var/www/html/
+   默认网页文件名称:index.html
+   一般网页的路径为/var/www/html/index.html
+
+
+搭建基本的FTP服务
+  FTP:文件传输协议   FTP对应的软件是vsftpd
+  默认FTP的服务的共享位置:/var/ftp/
+虚拟机sever  
+1.安装vsftpd软件
+ yum -y install vsftpd
+ 
+2.重启vsftpd服务
+ systemctl restart vsftpd
+ systemctl enable vsftpd
+
+3.本机验证
+ firfox  ftp://172.25.0.11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,156 @@
+                     特殊字符及文件
+一般特殊符号有哪些:
+   >:覆盖重定向
+  >>:追加重定向
+   重定向输出
+     >:只收集前面命令的正确输出信息
+     2>:只收集前面命令的错误输出信息
+     &>:收集前面命令的正确与错误信息
+    &>2:将正确输出变成错误输出
+ | 管道操作: 将前面命令的输出,交由后面命令处理
+• #! 环境声明,以下代码由那个程序进行解释
+• # 注释文本
+预定义变量
+• 由系统定义并且赋值完成                                    
+  $#  已加载的位置变量的个数
+  $?  程序退出后的状态值,0表示正常,其他值异常
+• 字符串比对
+    ==:一致为真
+    !=:不一致为真
+位置变量
+• 由系统定义并且赋值完成
+• 在执行脚本时提供的命令行参数
+– 表示为 $n,n为序号
+– $1、$2、.. .. ${10}、${11}、.. ..
+  反撇号 ` `  或  $(  )  :将命令的输出,直接参与另一条命令的运行,作为另一条命令的参数
+  单引号' ':取消所有特殊字符的意义,原样输出
+
+
+
+
+################################################################################
+/etc/passwd  一般为存放用户信息
+root:x:0:0:root:/root:/bin/bash
+用户名:密码占位符:uid:GID:用户的描述信息:家目录:解释器
+
+/etc/shadow   一般存放用户密码信息存放在
+root:$6$ERNtjzWs$6InXuk5dNZZK3MhnJsp1UbKeX.KbOiBxc5T/gw8moxbiV.OZSjSakxNTwzEUwI0ajVL8pwe4UBI35y8rjujzr/:17947:0:99999:7:::
+####用户名:密码加密字符串:上一次修改密码的时间
+                   1970-1-1~2019-5-6     18022
+
+/etc/bashrc  对所有用户有效
+ 影响所有用户的 bash 解释环境    可以在里面写别名   alias  别名名称=要设置的命令
+– /etc/~.bashrc,
+每次开启 bash 终端时生效 #设置永久别名配置文件,每开一个终端会被执行一次 
+
+/etc/group组基本信息存放在文件
+root:x:0:
+组名:组的密码占位符:GID:组的成员
+
+/etc/gshadow组成员信息存放在
+日志文件:/var/log/crond
+############################################################################################
+NTP客户机:虚拟机server
+1.安装chrony软件包,与时间服务器沟通软件
+2.修改配置/etc/chrony.conf,指定时间服务器位置
+[root@server0 /]# vim  /etc/chrony.conf   
+ 以#开头的为注释行
+server 0.rhel.pool.ntp.org iburst
+ #server 1.rhel.pool.ntp.org iburst
+ #server 2.rhel.pool.ntp.org iburst
+ server classroom.example.com  iburst   #指定服务端位置
+3.重启服务(程序)
+4.验证:date -s 
+date -s '2000-1-1  1:1:1'
+#############################################################################################
+
+书写配置文件: /etc/yum.repos.d/*.repo
+    错误的文件会影响正确的配置文件
+[root@server0 /]# rm -rf /etc/yum.repos.d/*
+[root@server0 /]# vim  /etc/yum.repos.d/dvd.repo
+ [rhel7]                #仓库标识
+ name=rhel7.0           #仓库描述信息
+ baseurl=http://classroom.example.com/content/rhel7.0/x86_64/dvd/      #指定服务端位置
+ enabled=1              #是否启用本文件
+ gpgcheck=0             #是否检测软件包的红帽签名
+
+rpm -q          查询软件名...
+– rpm -ivh      安装软件名-版本信息.rpm...
+– rpm -e         卸载 软件名...
+   rpm -ql vsftpd   #已安装软件的清单
+rpm --import /root/RPM-GPG-KEY-redhat-release   导 入红帽内核
+
+yum repolist                #显示仓库基本信息
+yum -y install 软件包名        yum下载软件
+yum remove httpd            卸载软件包
+yum clean all               #清空Yum缓存
+
+########################################################################################
+
+
+配置文件 /etc/fstab 的记录格式
+   设备路径       挂载点        类型        参数         备份标记    检测顺序
+
+/etc/fstab挂载的格式
+• 配置文件 /etc/fstab 的记录格式
+   设备路径       挂载点        类型        参数         备份标记    检测顺序
+
+有关samba的客户端获取共享文件
+1.临时挂载  mount  共享的文件(IP地址:文件)   挂载点
+2.开机自动挂载  在/etc/fstab的配置文件   
+格式:     ip地址:文件   挂载点    nfs    defaults,_netdev(参数)   0    0
+
+
+####################################################################
+固定配置:/etc/selinux/config 文件    修改selinux运行模式
+             selinux的三种运行模式
+                    enforcing强制模式
+                    permissive 宽松模式 
+                    disabled    禁止模式
+ 
+##############################################################################################
+
+默认存放文件文件路径:/var/www/html/
+   默认网页文件名称:index.html
+默认FTP服务共享位置:/var/ftp/
+/etc/iscsi/initiatorname.iscsi 共享磁盘iscsi的配置文件
+
+数据库的主配置文件:/etc/my.cnf
+
+服务端修改共享文件的配置文件:/etc/exports   
+格式:   共享目录或文件     客户机地址(权限)  ....
+      /etc/passwd      *(ro)  
+以只读的形式共享此文件
+
+
+
+
+
+  
+Windows: NTFS   FAT32
+Linux:  ext4(RHEL6)   xfs(RHEL7)
+
+挂载硬盘
+
+总结：
+1.识别硬盘　lsblk
+2.分区规划    fdisk
+3.刷新分区表　　partprobe
+4.进行格式化　　mkfs.xfs      格式化xfs文件系统
+              mkfs.ext4   格式化ext4文件系统
+               blkid      #查看分区文件系统
+5.挂载使用　mount  /设备路径   挂载点    临时挂载
+  /etc/fstab开机自动挂载   
+  mount -a  检测开机挂载是否成功
+   df -h  #查看正在挂载的设备,使用情况
+
+
+
+
+
+
+
+
+
+
+

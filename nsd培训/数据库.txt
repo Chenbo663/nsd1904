@@ -1,0 +1,90 @@
+数据库有哪些:MariaDB  MySQL  Orancle
+  部署Maria-DB数据库服务器
+1.安装MariaDB-server软件
+  yum -y install mariadb-server
+2.重启数据库Mariadb并开机自启
+
+
+表格:    增(insert)     删(delete)      改(update)    查(select)
+数据库的想关命令:数据库的命令必须以;结尾.
+ 进入数据库:mysql
+ 显示所有库:show databases;
+ 创建库:    create database "要建的库名";
+ 删除库:    drop  database "要是删除的库名";
+ 
+为数据库管理员设置密码
+ 数据库管理员root,针对数据库具有最高权限,信息存放mysql库中user表
+ 系统管理员root,针对系统具有最高权限,信息存放/etc/passwd    
+ 命令格式: mysqladmin [-u用户名] [-p[旧密码]] password '新密码'
+ mysql -u 用户名 -p     #交互式登录
+ mysql -u root -p123  #非交互式登录
+ 已知旧密码修改新密码:mysqladmin -u 用户 -p旧密码 password 新密码
+ 
+导入/恢复到数据库
+ mysql [-u用户名] [-p[密码]] 数据库名 < 备份文件.sql
+ 
+查看数据库中有哪些表格
+   show tables;         #显示当前库有那些表格
+   use '要切换的库名';  #切换到需要的库
+表格:    增(insert)     删(delete)      改(update)    查(select)
+    
+查(select)
+命令:select  表字段,表字段....  from  库名.表名  ##查询某个库的具体内容
+查看表结构:  desc  表名
+按条件查询:select  *  from  表名;
+           select  *  from  表名  where 表字段='满足的条件';
+       例如: select * from base where id='4';
+多条件查询:select  *  from  表名1,表名2,...  where  表名1.表字段='条件' and 表名2.表字段='条件' and  表名1.表字段=表名2.表字段
+count  代表计数的意思
+
+> select count(*)  from base,location         
+ where base.name='Barbara' and location.city='Sunnyvale' and 
+ base.id=location.id ;
+
+flush privileges; #刷新表记录
+退出数据库:exit
+数据库的授权:权限,普通用户的密码
+    GRANT 权限列表  ON 数据库名.表名 TO 用户名@客户机地址  IDENTIFIED BY  '密码';
+注意:
+1. 禁止空密码root用户访问 mariadb 数据库
+2.删除表中password值为空的记录
+> delete from user where password=''; 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+关于数据库的相关命令
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
